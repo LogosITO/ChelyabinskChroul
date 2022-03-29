@@ -77,6 +77,7 @@ public:
     ATypes getLastAnimation();
     Data getData();
     AABB getFixture(ATypes);
+    Coords getCoords();
 };
 
 Creature::Creature(Data _data) :
@@ -289,6 +290,12 @@ Data Creature::getData()
 AABB Creature::getFixture(ATypes animation_type)
 {
     return animations.at(animation_type).second;
+}
+
+Coords Creature::getCoords()
+{
+    AABB f = animations.at(last_animation).second;
+    return (Coords) {f.minimum.x, f.minimum.y};
 }
 
 #endif //__CREATURE_H__

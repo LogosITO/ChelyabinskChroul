@@ -4,6 +4,8 @@
 #include "Coords.hpp"
 #include <cassert>
 
+struct Circle { Coords center; double radius; };
+
 class AABB
 {
 public:
@@ -15,7 +17,7 @@ public:
     AABB(const AABB& a);
     inline AABB& operator= (const AABB& a);
     bool collideWithFixture(const AABB& a);
-    bool collideWithCircle(Coords center, double radius);
+    bool collideWithCircle(const Circle& c);
 };
 
 AABB::AABB() :
@@ -52,35 +54,39 @@ bool AABB::collideWithFixture(const AABB& a)
     return true;
 }
 
-bool AABB::collideWithCircle(Coords center, double radius)
+bool AABB::collideWithCircle(const Circle& c)
 {
-    assert(radius >= 0);
-    if(center.y < minimum.y)
+    assert(c.radius >= 0);
+
+    if(c.center.y < minimum.y)
     {
-        if(center.x < minimum.x)
-            return ((center.x - minimum.x) * (center.x - minimum.x) +
-            (center.y - minimum.y) * (center.y - minimum.y)) <= radius * radius;
-        if(center.x > maximum.x)
-            return ((center.x - maximum.x) * (center.x - maximum.x) +
-            (center.y - maximum.y) * (center.y - maximum.y)) <= radius * radius;
-        return minimum.y - center.y <= radius;
-    }
-    if(center.y > maximum.y)
-    {
-        if(center.x < minimum.x)
-          return ((center.x - minimum.x) * (center.x - minimum.x) +
-          (center.y - maximum.y) * (center.y - maximum.y)) <= radius * radius;
-        if(center.x > maximum.x)
-          return ((center.x - maximum.x) * (center.x - maximum.x) +
-          (center.y - maximum.y) * (center.y - maximum.y)) <= radius * radius;
-        return center.y - maximum.y <= radius;
+        if(c.center.x < minimum.x)
+            return ((c.center.x - minimum.x) * (c.center.x - minimum.x) +
+            (c.center.y - minimum.y) * (c.center.y - minimum.y)) <= c.radius * c.radius;
+        if(c.center.x > maximum.x)
+            return ((c.center.x - maximum.x) * (c.center.x - maximum.x) +
+            (c.center.y - minimum.y) * (c.center.y - minimum.y)) <= c.radius * c.radius;
+        return std::abs(minimum.y - c.center.y) <= c.radius;
     }
 
-    if(center.x < minimum.x)
-        return minimum.x - center.x <= radius;
-    if(center.x > maximum.x)
-        return center.x - maximum.x <= radius;
-    return center.x - minimum.x <= radius || maximum.x - center.x <= radius ||
-    center.y - minimum.y <= radius || maximum.y - center.y <= radius;
+    if(c.center.y > maximum.y)
+    {
+        if(c.center.x < minimum.x)
+          return ((c.center.x - minimum.x) * (c.center.x - minimum.x) +
+          (c.center.y - maximum.y) * (c.center.y - maximum.y)) <= c.radius * c.radius;
+        if(c.center.x > maximum.x)
+          return ((c.center.x - maximum.x) * (c.center.x - maximum.x) +
+          (c.center.y - maximum.y) * (c.center.y - maximum.y)) <= c.radius * c.radius;
+        return std::abs(c.center.y - maximum.y) <= c.radius;
+    }
+
+    if(c.center.x < minimum.x)
+        return std::abs(minimum.x - c.center.x) <= c.radius;
+
+    if(c.center.x > maximum.x)
+        return std::abs(c.center.x - maximum.x) <= c.radius;
+
+    return true;
 }
+
 #endif //__AABB_H__
